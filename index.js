@@ -4,20 +4,6 @@ const Promise = require('bluebird');
 const querystring = require('querystring');
 const colors = require('colors');
 
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
-const adapter = new FileSync('db.json')
-const db = low(adapter)
-
-db.defaults({events: []}).write()
-
-require('dotenv').config()
-
-const username = process.env.USERNAME
-const password = process.env.PASSWORD
-const timeout = parseInt(process.env.TIMEOUT);
-const pages = parseInt(process.env.PAGES);
-
 function makeRequest(method, endpoint, data){
 	return new Promise(function(res,rej){
 
@@ -51,11 +37,6 @@ function getAuthToken(html){
 }
 
 function registerForEvent(id){
-	var check = db.get('events').find({id: id}).value();
-	if(check){
-		console.log(("[x] Already registered for ["+id+"]").red)
-		return;
-	}
 
 	var count; 
 
@@ -86,7 +67,6 @@ function registerForEvent(id){
 	})
 	.then(function(){
 		console.log(("[✓] Registered for event "+id+" with "+count+" guests").green);
-		db.get('events').push({id: id}).write();
 	})
 	.catch(function(e){
 		console.error(("[x] ("+id+") "+e).red);
@@ -120,7 +100,38 @@ function startLoop(){
 	}, timeout*1000);
 }
 
-makeRequest('GET', 'https://identity.houseseven.com/sessions/new', {})
+var readline = require('readline');
+
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+function ask(prompt){
+	return new Promise(function(res,rej){
+		rl.question(prompt, function(answer) {
+		    return res(answer);
+		});
+	})
+}
+
+ask("What is your HouseSeven username?\n")
+.then(function(answer){
+	username = answer;
+	return ask("What is your HouseSeven password?\n")
+})
+.then(function(answer){
+	password = answer;
+	return ask("How many seconds should go by between every check? [Numbers only 1-1000]\n")
+})
+.then(function(answer){
+	timeout = parseInt(answer);
+	return ask("How many pages should be checked? [Numbers only 1-10]\n")
+})
+.then(function(answer){
+	pages = parseInt(answer);
+	return makeRequest('GET', 'https://identity.houseseven.com/sessions/new', {})
+})
 .then(function(response){
 	var token = getAuthToken(response);
 	return makeRequest('POST', 'https://identity.houseseven.com/sessions', {

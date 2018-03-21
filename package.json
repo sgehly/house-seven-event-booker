@@ -1,0 +1,8 @@
+{
+	"pkg": {
+	    "assets": [
+	    	"./db.json"
+	    ]
+	},
+	"bin": "index.js"
+}
