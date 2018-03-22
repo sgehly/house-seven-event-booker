@@ -3,7 +3,7 @@ const request = require('request').defaults({jar: true});
 const Promise = require('bluebird');
 const querystring = require('querystring');
 const colors = require('colors');
-const sleep = require('sleep');
+const delay = require('delay');
 
 var registered = [];
 
@@ -17,29 +17,30 @@ db.defaults({events: []}).write()
 function makeRequest(method, endpoint, data){
 	return new Promise(function(res,rej){
 
-		sleep.sleep(2);
+		delay(2000)
+		.then(() => {
+		    if(method == 'GET'){
+		    	request(endpoint, function(error, response, body) {
+		    		return res(body);
+		    	});
+		    }else{
+		    	var formData = querystring.stringify(data);
+		    	var contentLength = formData.length;
 
-		if(method == 'GET'){
-			request(endpoint, function(error, response, body) {
-				return res(body);
-			});
-		}else{
-			var formData = querystring.stringify(data);
-			var contentLength = formData.length;
+		    	var config = {
+		    		url:endpoint,
+		    		headers: {
+		    			'Content-Length': contentLength,
+		    			'Content-Type': 'application/x-www-form-urlencoded'
+		    		},
+		    		body: formData
+		    	} 
 
-			var config = {
-				url:endpoint,
-				headers: {
-					'Content-Length': contentLength,
-					'Content-Type': 'application/x-www-form-urlencoded'
-				},
-				body: formData
-			} 
-
-			request.post(config, function(err,httpResponse,body){
-				return res(body);
-			})
-		}
+		    	request.post(config, function(err,httpResponse,body){
+		    		return res(body);
+		    	})
+		    }
+		});;
 	})
 }
 
