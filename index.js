@@ -132,9 +132,9 @@ function runRound(){
 	var hour = date.getHours();
 	var min  = date.getMinutes();    
 
-	if((hour >= 8 && min >= 59) && (hour <= 9 && min <= 1) ||
-		(hour >= 11 && min >= 59) && (hour <= 12 && min <= 1) ||
-		(hour >= 19 && min >= 59) && (hour <= 20 && min <= 1)){
+	if(((hour >= 8 && min >= 59) && (hour <= 9 && min <= 1)) ||
+		((hour >= 11 && min >= 59) && (hour <= 12 && min <= 1)) ||
+		((hour >= 19 && min >= 59) && (hour <= 20 && min <= 1))){
 		getNewEvents('events');
 		getNewEvents('gym-sessions');
 		getNewEvents('screenings');
