@@ -5,6 +5,8 @@ const querystring = require('querystring');
 const colors = require('colors');
 const delay = require('delay');
 
+require('dotenv').config()
+
 var registered = [];
 
 const low = require('lowdb')
@@ -132,9 +134,12 @@ function runRound(){
 	var hour = date.getHours();
 	var min  = date.getMinutes();    
 
-	if(((hour >= 8 && min >= 59) && (hour <= 9 && min <= 1)) ||
-		((hour >= 11 && min >= 59) && (hour <= 12 && min <= 1)) ||
-		((hour >= 19 && min >= 59) && (hour <= 20 && min <= 1))){
+	hour = 12;
+	min = 0;
+
+	if(	((hour == 8 && min == 59) || (hour == 9 && min == 0) || (hour == 9 && min == 1)) ||
+		((hour == 11 && min == 59) || (hour == 12 && min == 0) || (hour == 12 && min == 1)) ||
+		((hour == 19 && min == 59) || (hour == 20 && min == 0) || (hour == 20 && min == 1))){
 		getNewEvents('events');
 		getNewEvents('gym-sessions');
 		getNewEvents('screenings');
@@ -167,33 +172,52 @@ function ask(prompt){
 	})
 }
 
-ask("What is your HouseSeven username?\n")
-.then(function(answer){
-	username = answer;
-	return ask("What is your HouseSeven password?\n")
-})
-.then(function(answer){
-	password = answer;
-	return ask("How many seconds should go by between every check? [Numbers only 1-1000]\n")
-})
-.then(function(answer){
-	if(answer){
-		timeout = parseInt(answer);
-	}else{
-		answer = 600
-	}
-	return ask("How many pages should be checked? [Numbers only 1-10]\n")
-})
-.then(function(answer){
-	if(answer){
-		pages = parseInt(answer);
-	}else{
-		answer = 2;
-	}
+function prompt(){
+	return new Promise(function(res,rej){
+		if(process.env.USEENV){
+			username = process.env.USERNAME;
+			password = process.env.PASSWORD;
+			timeout = parseInt(process.env.TIMEOUT);
+			pages = parseInt(process.env.PAGES);
+			return res();
+		}
+
+		ask("What is your HouseSeven username?\n")
+		.then(function(answer){
+			username = answer;
+			return ask("What is your HouseSeven password?\n")
+		})
+		.then(function(answer){
+			password = answer;
+			return ask("How many seconds should go by between every check? [Numbers only 1-1000]\n")
+		})
+		.then(function(answer){
+			if(answer){
+				timeout = parseInt(answer);
+			}else{
+				answer = 600
+			}
+			return ask("How many pages should be checked? [Numbers only 1-10]\n")
+		})
+		.then(function(answer){
+			if(answer){
+				pages = parseInt(answer);
+			}else{
+				answer = 2;
+			}
+			return res();
+		})
+	})
+}
+
+prompt()
+.then(function(){
 	return makeRequest('GET', 'https://identity.houseseven.com/sessions/new', {})
 })
 .then(function(response){
+	console.log(response);
 	var token = getAuthToken(response);
+	console.log(token, username, password);
 	return makeRequest('POST', 'https://identity.houseseven.com/sessions', {
 		'user[email]': username,
 		'user[password]': password,
