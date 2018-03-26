@@ -134,9 +134,6 @@ function runRound(){
 	var hour = date.getHours();
 	var min  = date.getMinutes();    
 
-	hour = 12;
-	min = 0;
-
 	if(	((hour == 8 && min == 59) || (hour == 9 && min == 0) || (hour == 9 && min == 1)) ||
 		((hour == 11 && min == 59) || (hour == 12 && min == 0) || (hour == 12 && min == 1)) ||
 		((hour == 19 && min == 59) || (hour == 20 && min == 0) || (hour == 20 && min == 1))){
