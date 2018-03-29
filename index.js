@@ -8,6 +8,7 @@ const delay = require('delay');
 require('dotenv').config()
 
 var registered = [];
+var pending = [];
 
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
@@ -55,7 +56,12 @@ function getAuthToken(html){
 function registerForEvent(type, id){
 
 	if(registered.indexOf(type+'-'+id) != -1){
-		console.error(("[x] ("+id+" - "+type+") You have already registered for this event.").red);
+		console.error(("[x] ("+id+" - "+type+") [Memory] You have already registered for this event.").red);
+		return;
+	}
+
+	if(pending.indexOf(type+'-'+id) != -1){
+		console.error(("[~] ("+id+" - "+type+") [Memory] Request already sent.").orange);
 		return;
 	}
 
@@ -67,16 +73,14 @@ function registerForEvent(type, id){
 
 	var count; 
 
+	pending.push(type+'-'+id);
+
 	makeRequest('GET', 'https://www.houseseven.com/'+type+'/'+id+'/booking')
 	.then(function(html){
 		var token = getAuthToken(html);
 
 		const $ = cheerio.load(html);
 		
-		const cancelButton = $('a.cancellation').get(0);
-		if(cancelButton){
-			throw "You have already registered for this event.";
-		}
 		const ticketOptions = $('#booking_tickets > option').get();
 		const manualOption = $('#booking_tickets');
 
