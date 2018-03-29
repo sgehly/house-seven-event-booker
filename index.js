@@ -67,7 +67,7 @@ function registerForEvent(type, id){
 
 	var check = db.get('events').find({id: id}).value();
 	if(check){
-		console.log(("[x] Already registered for ["+id+"]").red)
+		console.log(("[x] [Database] Already registered for ["+id+"]").red)
 		return;
 	}
 
@@ -106,7 +106,7 @@ function registerForEvent(type, id){
 		db.get('events').push({id: id}).write();
 	})
 	.catch(function(e){
-		console.error(("[x] ("+id+" - "+type+") "+e).red);
+		console.error(("[x] ("+id+" - "+type+") [Raw Error] "+e).red);
 	})
 }
 
